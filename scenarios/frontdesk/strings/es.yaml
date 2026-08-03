@@ -1,0 +1,17 @@
+urgent_message: >-
+  Salga del edificio ahora y saque a todos con usted. No toque ningún
+  interruptor, aparato ni termostato al salir, y no use el teléfono hasta estar
+  fuera. Una vez fuera, llame al teléfono de emergencias de su compañía de gas.
+  Vuelva a llamarnos después y le enviaremos un técnico.
+urgent_primary: LLAMAR A EMERGENCIAS DEL GAS
+urgent_secondary: VOLVER A LLAMAR A RIDGELINE
+
+refusal_message: >-
+  Me ocupo de la calefacción y el aire acondicionado de Ridgeline. En eso no
+  puedo ayudarle, pero sí puedo agendar una visita, localizar a un técnico o
+  darle una horquilla de precio.
+error_message: >-
+  Ese sistema no está disponible por un momento. Vuelva a intentarlo o dígame
+  la referencia del aviso y yo lo consulto.
+busy_message: Un momento, ahora mismo hay mucha llamada.
+retry: Reintentar

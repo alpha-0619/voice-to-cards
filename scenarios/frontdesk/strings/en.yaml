@@ -1,0 +1,21 @@
+# The urgent text here is a safety instruction, not a handover message. That is
+# the difference between this pack and the airport one: an airport emergency
+# means "stay put, staff are coming"; a suspected gas leak means "leave now",
+# and the wrong wording is genuinely dangerous.
+
+urgent_message: >-
+  Leave the building now and take everyone with you. Do not touch any switch,
+  appliance or thermostat on your way out, and do not use your phone until you
+  are outside. Once you are out, call your gas utility's emergency line. Ring us
+  back afterwards and we will get a technician to you.
+urgent_primary: CALL THE GAS EMERGENCY LINE
+urgent_secondary: CALL RIDGELINE BACK
+
+refusal_message: >-
+  I look after heating and cooling for Ridgeline. I can't help with that, but I
+  can book a visit, chase a technician, or give you a price range.
+error_message: >-
+  That system is briefly unavailable. Please try again, or tell me the job
+  reference and I will chase it.
+busy_message: One moment, the lines are busy right now.
+retry: Try again

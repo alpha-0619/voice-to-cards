@@ -1,0 +1,235 @@
+id: frontdesk
+name: Ridgeline Heating & Air front desk
+
+# Ridgeline Heating & Air is invented, as is every job reference, account
+# number, technician and price band below. The reference notes cite the
+# reserved .example domain.
+#
+# This pack exists to test a claim, not just to add an industry. Structurally it
+# is the same shape as scenarios/airport:
+#
+#   airport                         frontdesk
+#   booking reference / flight  ->  job reference / account number
+#   flight delayed -> meal voucher   no heat -> priority dispatch
+#   which belt are my bags on   ->  where is my technician
+#   baggage rules (policy)      ->  service area and fees (policy)
+#   how do I get to Taksim      ->  should I change my own filter
+#
+# `core/` was not modified to add it. If it had to be, the engine was not
+# actually scenario-agnostic and the claim in the README was decoration.
+
+persona: |
+  You answer the phone for Ridgeline Heating & Air, a residential heating and
+  cooling company. Callers reach you when something in their home has stopped
+  working, often when it is very cold or very hot, sometimes with children or
+  elderly relatives in the house. Be calm, concrete and quick. Never promise a
+  price or an arrival time you were not given.
+
+disambiguation: |
+  Routing notes:
+  - A gas smell, a carbon monoxide alarm, or anything the caller describes as
+    burning or sparking is flag_urgent. Do not book a visit for it. The safety
+    instruction comes first and a technician comes second.
+  - No heat below freezing, no cooling in extreme heat, water actively leaking,
+    or a vulnerable person in the house -> dispatch_emergency.
+  - "When is someone coming" about an existing job -> get_job_status, not
+    book_service_visit.
+  - "How much is it" with no job yet -> get_quote_range. Give the band, never a
+    single figure.
+  - A caller asking whether something is covered -> check_warranty if they give
+    an account, answer_policy if they are asking the general rule.
+
+languages: [en, es]
+default_language: en
+
+identifiers:
+  job:
+    field: job_ref
+    pattern: "RH[A-Z0-9]{5}"
+    description: 'job reference = "RH" followed by 5 letters or digits, e.g. RH4T8K2'
+  account:
+    field: account_ref
+    pattern: "RA[0-9]{6}"
+    description: 'account number = "RA" followed by 6 digits, e.g. RA204817'
+
+tools:
+  - name: find_account
+    description: Look a customer up by phone number and return their address, equipment and plan.
+    card: detail
+    params:
+      phone: {type: string, description: The number the caller is calling about, required: true}
+
+  - name: get_job_status
+    description: Return the status of an existing job, the assigned technician and the arrival window.
+    card: hero_dispatch
+    params:
+      job_ref: {type: string, description: The job reference, required: true}
+
+  - name: get_technician_eta
+    description: Return how many minutes away the assigned technician currently is.
+    card: hero_dispatch
+    params:
+      job_ref: {type: string, description: The job reference, required: true}
+
+  - name: dispatch_emergency
+    description: >-
+      Raise a priority job for a home with no heat, no cooling, or an active leak,
+      and put it at the front of the queue.
+    card: hero_dispatch
+    params:
+      issue: {type: string, description: What has failed, in the caller's words, required: true}
+      account_ref: {type: string, description: Account number if the caller gave one}
+      phone: {type: string, description: Callback number if they gave one}
+
+  - name: book_service_visit
+    description: Book a standard service visit in the next available slot.
+    card: hero_appointment
+    params:
+      issue: {type: string, description: What needs looking at, required: true}
+      account_ref: {type: string, description: Account number if the caller gave one}
+      phone: {type: string, description: Callback number if they gave one}
+
+  - name: reschedule_visit
+    description: Move an existing booked visit to the next available slot.
+    card: hero_appointment
+    params:
+      job_ref: {type: string, description: The job reference, required: true}
+
+  - name: get_quote_range
+    description: Return the typical price band for a job, never a single figure.
+    card: hero_quote
+    params:
+      service: {type: string, description: The work being asked about, required: true}
+
+  - name: check_warranty
+    description: Return whether a customer's equipment is still covered and until when.
+    card: detail
+    params:
+      account_ref: {type: string, description: The account number, required: true}
+
+  - name: get_service_history
+    description: Return the customer's recent visits.
+    card: detail
+    params:
+      account_ref: {type: string, description: The account number, required: true}
+
+  - name: get_hours_and_area
+    description: Return opening hours, after-hours cover and the service area.
+    card: detail
+    params: {}
+
+cards:
+  hero_appointment:
+    layout: appointment
+    fields: [customer, address, service, window, job_ref]
+    optional_fields: [technician, plan, arrival_note, coverage, expires]
+  hero_dispatch:
+    layout: dispatch
+    fields: [job_ref, status, issue, priority, technician]
+    optional_fields: [eta_minutes, vehicle, window, arrival_note]
+  hero_quote:
+    layout: quote
+    fields: [service, range_low, range_high, currency]
+    optional_fields: [includes, diagnostic_fee, note]
+  detail:
+    layout: detail
+    fields: [title, summary]
+    optional_fields: [customer, address, equipment, plan, coverage, expires, last_visit, hours, area]
+
+demos:
+  - id: no_heat
+    label: No heat and it's freezing
+    utterance: >-
+      hi yes the heat is not working since last night, the house is so cold, my
+      mother is here she is 84, account RA204817, please can someone come today?
+    decision:
+      understood: Your heat has failed overnight with an elderly relative in the house. Raising this as a priority now.
+      language: en
+      action: dispatch_emergency
+      arguments: {issue: no heat overnight, elderly resident in the home, account_ref: RA204817}
+
+  - id: eta
+    label: Where is my technician
+    utterance: someone was supposed to come this morning, job RH4T8K2, is he coming or no?
+    decision:
+      understood: You want to know where the technician for job RH4T8K2 has got to.
+      language: en
+      action: get_job_status
+      arguments: {job_ref: RH4T8K2}
+
+  - id: book
+    label: Book a service visit
+    utterance: >-
+      the AC is making a rattling noise, not urgent, still cold air, but I want
+      someone to look. account RA204817.
+    decision:
+      understood: You want a technician to look at a rattling noise from your air conditioning.
+      language: en
+      action: book_service_visit
+      arguments: {issue: rattling noise from the air conditioning, account_ref: RA204817}
+
+  - id: quote
+    label: How much does it cost
+    utterance: how much you charge to replace a furnace? roughly. I don't want a surprise
+    decision:
+      understood: You want a rough price for replacing a furnace.
+      language: en
+      action: get_quote_range
+      arguments: {service: furnace replacement}
+
+  - id: policy
+    label: Do you charge to come out
+    utterance: if the guy comes and looks and it's nothing, do I still pay something?
+    decision:
+      understood: You are asking whether the call-out is charged when nothing turns out to be wrong.
+      language: en
+      action: answer_policy
+      arguments: {}
+      reply: >-
+        There is a flat diagnostic fee for the visit, and it is credited against the
+        repair if you go ahead on the same day.
+      sources: ["https://www.ridgelinehvac.example/help/fees"]
+
+  - id: gas
+    label: I can smell gas
+    utterance: >-
+      I think I smell gas in the kitchen, it's strong, what do I do, should I turn
+      off the furnace? my wife says she smells it too
+    decision:
+      understood: You can smell gas in your home. This is a safety matter and comes before any repair.
+      language: en
+      action: flag_urgent
+      arguments: {}
+
+  - id: spanish
+    label: (es) El aire no enfría
+    utterance: buenas, el aire acondicionado no enfría nada y hace muchísimo calor, mi cuenta es RA204817
+    decision:
+      understood: Su aire acondicionado no enfría con el calor que hace. Lo tramito como prioridad.
+      language: es
+      action: dispatch_emergency
+      arguments: {issue: el aire acondicionado no enfría, account_ref: RA204817}
+
+chains:
+  # "Where is my technician" is never really a status question. The caller wants
+  # a number of minutes, so the card carries one.
+  - when_tool: get_job_status
+    then:
+      - tool: get_technician_eta
+        args: {job_ref: "$args.job_ref"}
+
+  # A priority job is created with a reference the caller never had, so the
+  # follow-up resolves it from the result rather than from what they said.
+  - when_tool: dispatch_emergency
+    when_result: {priority: P1}
+    then:
+      - tool: get_technician_eta
+        args: {job_ref: "$result.job_ref"}
+
+  # The second question after "when can you come" is always "what will it cost
+  # me". Answer it unasked when the account is known -- and when it is not, the
+  # step is skipped rather than quoting someone else's coverage.
+  - when_tool: book_service_visit
+    then:
+      - tool: check_warranty
+        args: {account_ref: "$args.account_ref"}
