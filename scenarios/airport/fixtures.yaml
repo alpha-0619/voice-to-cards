@@ -94,18 +94,15 @@ get_bag_belt:
 get_directions:
   base:
     walk_minutes: 7
-    level: "2"
   localized:
     en:
       destination: Gate D22
-      landmark: past the glass atrium
       steps:
         - Head right out of the arrivals hall and follow signs for D gates.
         - Take the escalator up one level at the glass atrium.
         - Continue past the pharmacy; D22 is the fourth gate on the left.
     es:
       destination: Puerta D22
-      landmark: pasando el atrio de cristal
       steps:
         - Salga a la derecha de la sala de llegadas y siga los carteles hacia las puertas D.
         - Suba una planta por la escalera mecánica junto al atrio de cristal.

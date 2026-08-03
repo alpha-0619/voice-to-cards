@@ -70,7 +70,9 @@ def test_replay_runs_the_whole_pipeline(client):
     assert names[-1] == "done"
 
     card = next(p for n, p in events if n == "card")
-    assert card["layout"] == "disruption"
+    # A shape from the shared vocabulary, not an industry-specific name: a
+    # flight delay and a dispatched technician render through the same one.
+    assert card["layout"] == "status"
     assert card["data"]["status"] == "DELAYED"
     assert card["data"]["gate"] == "C14"
 

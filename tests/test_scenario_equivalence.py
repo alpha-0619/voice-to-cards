@@ -19,7 +19,12 @@ import pytest
 from core.engine import CardReady, Engine, ReplyReady, Understood
 from core.prompt import build_router_tool, build_system_blocks
 from core.providers.scripted import ScriptedProvider
-from core.scenario import ENGINE_REQUIRED_STRINGS, available_scenarios, load_scenario
+from core.scenario import (
+    ENGINE_REQUIRED_STRINGS,
+    PACK_LAYOUTS,
+    available_scenarios,
+    load_scenario,
+)
 
 PACKS = available_scenarios()
 
@@ -89,6 +94,22 @@ def test_localized_overlays_do_not_invent_fields(pack_id):
                     others |= set(other)
             stray = set(overlay) - others
             assert not stray, f"{pack_id}/{tool}: {language} has keys no other language does: {sorted(stray)}"
+
+
+def test_cards_use_the_shared_layout_vocabulary(pack_id):
+    """A pack picks a shape; it does not invent one.
+
+    Enforced at load, asserted here because it is the constraint that keeps
+    "adding an industry is adding a directory" true. The moment a pack can name
+    its own layout, the interface needs a component per pack and the claim is
+    dead.
+    """
+    scenario = load_scenario(pack_id)
+    for name, card in scenario.spec.cards.items():
+        assert card.layout in PACK_LAYOUTS, (
+            f"{pack_id}/card {name} uses layout {card.layout!r}, "
+            f"which is not one of {list(PACK_LAYOUTS)}"
+        )
 
 
 def test_pack_supplies_the_text_the_engine_itself_writes(pack_id):

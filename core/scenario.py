@@ -107,17 +107,63 @@ class IdentifierSpec(BaseModel):
         return v
 
 
-class CardSpec(BaseModel):
-    """How the frontend should render a tool result.
+# The closed vocabulary of shapes a card can take.
+#
+# This is the constraint that keeps "adding an industry is adding a directory"
+# true. The first two packs between them invented nine layout names -- boarding
+# pass, appointment, disruption, dispatch, connection, quote, directions,
+# detail, notice -- and if the interface hardcoded a component per name, every
+# new pack would need frontend work and the claim would quietly be false.
+#
+# They were never nine shapes. A boarding pass and a booked service visit are
+# the same object: a headline entity, a grid of facts, a reference code. A
+# flight delay and a dispatched technician are both "something changed, here is
+# the new state and what it means for you". Naming them by shape instead of by
+# industry collapses nine into six, and a pack now picks from a vocabulary
+# rather than inventing one.
+#
+# A pack that genuinely needs a seventh shape adds it here and in the renderer,
+# deliberately and once, rather than by accident on the way past.
+PACK_LAYOUTS = (
+    "pass",    # a ticket-like artifact: headline entity, field grid, scannable code
+    "status",  # something changed: state, before/after, what it means
+    "plan",    # a sequence against a deadline, with a risk level
+    "range",   # a band between two numbers, with what is included
+    "steps",   # an ordered list of instructions
+    "detail",  # a prose summary plus supporting fields
+)
 
-    `fields` is the contract between backend and UI: the generated TypeScript
-    types come from here, so a pack that renames a field breaks the build
-    instead of silently rendering an empty card.
+# Set by the engine, never by a pack: these are the built-in paths.
+ENGINE_LAYOUTS = ("urgent", "notice")
+
+
+class CardSpec(BaseModel):
+    """How the interface should render a tool result.
+
+    `layout` picks a shape from the shared vocabulary. `fields` is the contract
+    between engine and interface: the generated TypeScript comes from here, so a
+    pack that renames a field breaks the build rather than silently rendering an
+    empty row.
     """
 
     layout: str
     fields: list[str] = Field(default_factory=list)
     optional_fields: list[str] = Field(default_factory=list)
+
+    @field_validator("layout")
+    @classmethod
+    def _known_shape(cls, v: str) -> str:
+        if v in ENGINE_LAYOUTS:
+            raise ValueError(
+                f"layout {v!r} is reserved for the engine's own cards; packs cannot use it"
+            )
+        if v not in PACK_LAYOUTS:
+            raise ValueError(
+                f"unknown layout {v!r}. Pick a shape from {list(PACK_LAYOUTS)}, or add a new "
+                f"one to PACK_LAYOUTS and implement it in the renderer -- deliberately, "
+                f"because every pack then inherits it."
+            )
+        return v
 
 
 class ChainStep(BaseModel):

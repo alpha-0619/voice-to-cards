@@ -122,6 +122,39 @@ async def test_chain_step_is_skipped_when_its_argument_is_missing(scenario):
     assert "voucher_code" not in data      # this one cannot, so it did not run
 
 
+async def test_card_data_is_projected_onto_what_the_card_declares(scenario):
+    """A chain routinely returns more than the card it is filling can show.
+
+    Walking directions carry a destination and a step list; a baggage card has
+    rows for the belt and the walk but not for the destination, which on that
+    card would just repeat the hall. Passing the whole merged dict through means
+    the interface silently ignores the surplus, which is the same invisible
+    failure as a renamed field. Projecting makes the card spec the contract in
+    both directions, and the drop is traced rather than silent.
+    """
+    events = await run(
+        scenario,
+        {
+            "understood": "Where are my bags?",
+            "language": "en",
+            "action": "get_bag_belt",
+            "arguments": {"flight_number": "SX412"},
+        },
+    )
+    spec = scenario.spec.cards["detail"]
+    declared = set(spec.fields) | set(spec.optional_fields)
+
+    data = card(events).data
+    assert set(data) <= declared, f"undeclared keys reached the client: {set(data) - declared}"
+    assert data["belt"] == "6"          # the answer
+    assert data["steps"]               # and the walk, because `detail` declares it
+
+    dropped = [t for t in only(events, Trace) if t.stage == "dropped"]
+    assert "destination" in (dropped[0].detail["fields"] if dropped else []), (
+        "a dropped field must be traced, not discarded quietly"
+    )
+
+
 async def test_chain_does_not_overwrite_the_primary_answer(scenario):
     """A follow-up fills gaps; it never wins a conflict.
 

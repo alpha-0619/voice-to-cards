@@ -29,6 +29,19 @@ from .scenario import Scenario
 from .streaming import FieldDelta, FieldDone, PartialJSONObject
 from .providers.base import ArgsFragment, Completed, Failed
 
+def _project(result: dict, card) -> tuple[dict, set[str]]:
+    """Split a tool result into what the card declares and what it does not.
+
+    Returns (shown, dropped). Dropping is reported as a trace event rather than
+    happening quietly: a field appearing there is usually either a card that
+    should declare it or a chain wired to the wrong tool, and both are worth
+    seeing while developing a pack.
+    """
+    declared = set(card.fields) | set(card.optional_fields)
+    shown = {k: v for k, v in result.items() if k in declared}
+    return shown, set(result) - declared
+
+
 BUILTIN_URGENT = "flag_urgent"
 BUILTIN_REFUSE = "refuse_off_topic"
 BUILTIN_POLICY = "answer_policy"
@@ -277,8 +290,22 @@ class Engine:
             return
 
         card = scenario.spec.cards[tool.card]
+        # Project onto what the card declares. A chain exists to fill gaps, and
+        # a filler tool routinely returns more than the card it is filling can
+        # show -- walking directions carry a floor level and a landmark that a
+        # baggage card has no row for. Passing the whole merged dict through
+        # meant the interface silently ignored those keys, which is the same
+        # shape of bug as a renamed field: invisible, and only found by reading
+        # both sides.
+        #
+        # Projecting makes the card spec the contract in both directions. It
+        # also stops internal fields reaching the client by accident, which
+        # matters more once fixtures are swapped for a real integration.
+        shown, dropped = _project(result, card)
+        if dropped:
+            yield Trace("dropped", ms(), {"card": tool.card, "fields": sorted(dropped)})
         yield Trace("render", ms(), {"card": tool.card, "layout": card.layout})
-        yield CardReady(card=tool.card, layout=card.layout, data=result)
+        yield CardReady(card=tool.card, layout=card.layout, data=shown)
 
     # -- helpers ----------------------------------------------------------
 
