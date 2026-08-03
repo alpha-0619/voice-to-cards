@@ -1,9 +1,15 @@
 # Latency notes
 
-Measurements go here once `tools/bench.py` has been run against a live key.
-Nothing in this file is estimated: every number is produced by the harness,
-which reads the engine's own trace events, and every table states the model,
-the effort level and the run count it came from.
+> **Status: not measured yet.** This file has no numbers in it, and that is
+> deliberate rather than an oversight. The design below is an argument about
+> where the time goes; until `tools/bench.py` has run against a live key it
+> stays an argument. Nothing here or in the README quotes a figure in the
+> meantime.
+
+Measurements go here once the harness has been run. Nothing in this file will
+be estimated: every number will be produced by the harness, which reads the
+engine's own trace events, and every table will state the model, the effort
+level and the run count it came from.
 
 Run it with:
 
