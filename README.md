@@ -34,7 +34,13 @@ utterance is a shallow problem, and the depth costs seconds a caller can feel.
 **The first field is the one a person wants.** The tool schema declares
 `understood` first, so it is written first. The engine walks the argument JSON
 as it arrives and emits that sentence character by character while the rest of
-the decision is still forming. Same total time; almost none of the wait.
+the decision is still forming. The intent is to leave total time alone and
+remove the wait.
+
+> **Not yet measured.** That last sentence is the design's argument, not a
+> result. `tools/bench.py` exists to test it and has not been run against a
+> live key yet, so [docs/LATENCY.md](docs/LATENCY.md) has no numbers in it.
+> Nothing in this repository quotes a latency figure until it does.
 
 **A small corpus rides in the cache instead of a vector store.** The reference
 notes are a few thousand tokens. At that size, retrieval costs more than it
@@ -72,6 +78,18 @@ curl -N localhost:8000/api/converse -H 'content-type: application/json' \
 The split is deliberate: a demonstration runs through the identical pipeline
 with no request leaving the box, so it cannot fail because of someone else's
 rate limit, and it keeps working after the day's ceiling is spent.
+
+### Deploying it publicly
+
+**Deploy without `ANTHROPIC_API_KEY`.** With no key configured, `/api/converse`
+returns 503 and everything else works: the manifest, and all of the canned
+demos, which run the real engine end to end. A public link is then free to
+share and impossible to run up a bill on, because there is no key on the box to
+spend.
+
+Set a key only where free-form input is actually wanted — a local run, or a
+deployment behind auth. The rate limiter exists for the middle case, but the
+strongest control is simply not putting a key somewhere the public can reach.
 
 ## A scenario pack
 

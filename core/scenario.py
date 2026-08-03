@@ -38,6 +38,20 @@ SCENARIO_ROOT = pathlib.Path(__file__).resolve().parents[1] / "scenarios"
 # forced tool schema stays a fixed enum.
 BUILTIN_ACTIONS = ("flag_urgent", "refuse_off_topic", "answer_policy", "answer_general")
 
+# Text the engine writes on paths that exist in every pack: the urgent handover,
+# the refusal, the two failure states, and the retry button. A pack that omits
+# one of these renders the raw key at exactly the moment things are already
+# going wrong, so the contract is checked at load rather than left implicit.
+ENGINE_REQUIRED_STRINGS = (
+    "urgent_message",
+    "urgent_primary",
+    "urgent_secondary",
+    "refusal_message",
+    "error_message",
+    "busy_message",
+    "retry",
+)
+
 
 class ParamSpec(BaseModel):
     """One argument the model may extract for a tool."""
@@ -219,9 +233,22 @@ class Scenario:
         self._validate_strings()
 
     def _validate_strings(self) -> None:
-        """Every language carries the same keys as the default, or the engine
-        would silently fall back to English on a subset of the UI."""
+        """Two checks: the pack covers what the engine needs, and every language
+        covers what the pack declares.
+
+        Skip the first and a pack renders a bare key on its urgent or error
+        path. Skip the second and one language silently falls back to another
+        on a subset of the interface.
+        """
         base = set(self.strings[self.spec.default_language])
+
+        engine_missing = set(ENGINE_REQUIRED_STRINGS) - base
+        if engine_missing:
+            raise ValueError(
+                f"{self.spec.id}/strings/{self.spec.default_language}.yaml is missing "
+                f"keys the engine itself needs: {sorted(engine_missing)}"
+            )
+
         for lang, table in self.strings.items():
             missing = base - set(table)
             if missing:

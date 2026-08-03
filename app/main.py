@@ -162,12 +162,32 @@ def _client_key(request: Request) -> str:
 
 def _live_engine() -> Engine:
     if app.state.engine is None:
+        # Checked here rather than relying on the client constructor: the SDK
+        # accepts a keyless client and only refuses at request time, which
+        # would surface as an exception halfway through an open SSE stream
+        # instead of an honest 503 before one is opened.
+        if not settings.anthropic_api_key:
+            raise HTTPException(
+                status_code=503,
+                detail=(
+                    "Free-form input needs ANTHROPIC_API_KEY. This deployment does not "
+                    "have one, which is the recommended posture for a public link: the "
+                    "canned demos under /api/replay/{id} run the same engine end to end "
+                    "and cost nothing."
+                ),
+            )
         try:
             app.state.engine = Engine(app.state.scenario, build_provider("claude"))
         except Exception as exc:  # missing key, missing SDK, bad config
             raise HTTPException(
                 status_code=503,
-                detail=f"model provider unavailable: {type(exc).__name__}",
+                detail=(
+                    "Free-form input needs ANTHROPIC_API_KEY. This deployment does not "
+                    "have one, which is the recommended posture for a public link: the "
+                    "canned demos under /api/replay/{id} run the same engine end to end "
+                    "and cost nothing. "
+                    f"({type(exc).__name__})"
+                ),
             ) from exc
     return app.state.engine
 

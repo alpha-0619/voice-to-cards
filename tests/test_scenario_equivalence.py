@@ -19,7 +19,7 @@ import pytest
 from core.engine import CardReady, Engine, ReplyReady, Understood
 from core.prompt import build_router_tool, build_system_blocks
 from core.providers.scripted import ScriptedProvider
-from core.scenario import available_scenarios, load_scenario
+from core.scenario import ENGINE_REQUIRED_STRINGS, available_scenarios, load_scenario
 
 PACKS = available_scenarios()
 
@@ -89,6 +89,21 @@ def test_localized_overlays_do_not_invent_fields(pack_id):
                     others |= set(other)
             stray = set(overlay) - others
             assert not stray, f"{pack_id}/{tool}: {language} has keys no other language does: {sorted(stray)}"
+
+
+def test_pack_supplies_the_text_the_engine_itself_writes(pack_id):
+    """The engine writes on paths every pack has: the urgent handover, the
+    refusal, two failure states, the retry button. A pack missing one of those
+    renders a bare key at exactly the moment something has already gone wrong.
+
+    Enforced by the loader; asserted here so it is a named, visible contract
+    rather than an unwritten rule the first pack happened to satisfy.
+    """
+    scenario = load_scenario(pack_id)
+    table = scenario.strings[scenario.spec.default_language]
+    for key in ENGINE_REQUIRED_STRINGS:
+        assert key in table, f"{pack_id} does not supply {key!r}"
+        assert table[key].strip(), f"{pack_id} supplies {key!r} but it is empty"
 
 
 def test_every_language_carries_every_string(pack_id):

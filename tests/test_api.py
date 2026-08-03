@@ -94,6 +94,23 @@ def test_replay_of_a_policy_demo_returns_prose_with_sources(client):
     assert not any(n == "card" for n, _ in events)
 
 
+def test_key_less_deployment_serves_demos_but_refuses_free_form(client):
+    """The recommended posture for a public link, asserted as a property.
+
+    With no key on the box there is nothing to run up a bill on, and the demos
+    still exercise the real engine. If free-form input ever started working
+    without a key -- or the demos ever started needing one -- a public deploy
+    would quietly become a spending liability.
+    """
+    assert not client.get("/health").json()["has_key"]
+
+    refused = client.post("/api/converse", json={"utterance": "is SX412 delayed?"})
+    assert refused.status_code == 503
+    assert "replay" in refused.json()["detail"]
+
+    assert client.post("/api/replay/disruption").status_code == 200
+
+
 def test_utterance_length_is_bounded(client):
     assert client.post("/api/converse", json={"utterance": "x" * 5000}).status_code == 422
     assert client.post("/api/converse", json={"utterance": ""}).status_code == 422

@@ -113,6 +113,14 @@ class ClaudeProvider:
         except APIError as exc:
             yield Failed(kind=_classify(exc), detail=f"{type(exc).__name__}: {str(exc)[:200]}")
             return
+        except Exception as exc:
+            # Anything else -- an auth error the SDK defers to request time, a
+            # DNS failure, a transport fault. The contract is that a provider
+            # reports failure as a value; letting it raise here would tear an
+            # already-open SSE stream and the client would see a truncated
+            # response rather than an error it can act on.
+            yield Failed(kind="unavailable", detail=f"{type(exc).__name__}: {str(exc)[:200]}")
+            return
 
         yield Completed(usage=_usage_of(final), stop_reason=getattr(final, "stop_reason", None))
 
@@ -130,6 +138,14 @@ class ClaudeProvider:
             message = await self._client.messages.create(**self._request(system, tool, messages))
         except APIError as exc:
             yield Failed(kind=_classify(exc), detail=f"{type(exc).__name__}: {str(exc)[:200]}")
+            return
+        except Exception as exc:
+            # Anything else -- an auth error the SDK defers to request time, a
+            # DNS failure, a transport fault. The contract is that a provider
+            # reports failure as a value; letting it raise here would tear an
+            # already-open SSE stream and the client would see a truncated
+            # response rather than an error it can act on.
+            yield Failed(kind="unavailable", detail=f"{type(exc).__name__}: {str(exc)[:200]}")
             return
 
         block = next((b for b in message.content if b.type == "tool_use"), None)
