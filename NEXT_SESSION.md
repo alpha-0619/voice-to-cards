@@ -184,8 +184,10 @@ npm --prefix web run build                 # → public/
 uvicorn app.main:app --port 8010           # serves the built app and the API
 ```
 
-Two servers may still be running from the last session: `v2c-api` on 8010 and
-`v2c-web` on 5175. The Vite one proxies `/api` to 8010.
+Nothing is running. Both dev servers were stopped at the end of the last
+session, and ports 8010 and 5175 are free. Start them with `preview_start`
+using the names `v2c-api` and `v2c-web` from `C:\Users\User\.claude\launch.json`.
+The Vite one proxies `/api` to 8010, so start the API first.
 
 To serve the other pack, put `SCENARIO=frontdesk` in `.env` and restart the API.
 
