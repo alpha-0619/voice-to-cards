@@ -1,0 +1,40 @@
+# CI, parked here rather than at .github/workflows/ci.yml.
+#
+# Not a design decision. GitHub refuses a push that creates or updates a file
+# under .github/workflows/ unless the pushing token carries the `workflow`
+# OAuth scope, and the token available when this repository was first pushed
+# did not have it. Rather than leave the file out entirely, it lives here.
+#
+# To enable it, copy this file to `.github/workflows/ci.yml`. Doing that
+# through GitHub's own web editor works without any extra scope, because the
+# web session is not the OAuth app. From a terminal it needs:
+#
+#     gh auth refresh -s workflow
+#
+# What it buys: proof that the suite really does run without an API key, on a
+# clean machine, rather than only on the laptop it was written on. That is the
+# claim in the README most worth being able to point at.
+
+name: tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - run: pip install -e ".[dev]"
+      # No API key. The whole suite runs against the scripted provider, so a
+      # failure here is a real failure rather than someone else's outage.
+      - run: pytest -q
