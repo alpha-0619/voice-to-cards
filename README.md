@@ -111,6 +111,42 @@ Adding a language is adding one file to `strings/` and one overlay column in
 `fixtures.yaml`. Nothing is translated at request time, which is why the
 seventh language costs the same as the first.
 
+## The interface
+
+```bash
+cd web && npm install && npm run dev     # http://localhost:5175
+```
+
+Vite, React, TypeScript, and no component library. That is the point of the
+number below rather than an aesthetic preference: the app this rebuilds pulled
+in a UI kit that shipped three icon fonts it never used.
+
+| built output | raw | gzipped |
+|---|---:|---:|
+| `index.js` | 205.8 KB | 64.7 KB |
+| `index.css` | 7.4 KB | 2.3 KB |
+| **total (3 files)** | **208.6 KB** | **65.5 KB** |
+
+**Types are generated, not written twice.** `tools/gen_types.py` derives
+`web/src/types.gen.ts` from the engine's own dataclasses and the installed
+packs, and `tests/test_generated_types.py` fails if the checked-in file has
+drifted. Renaming a field on the backend is then a compile error in the
+interface, instead of a card that renders with one empty row and is found by a
+user.
+
+**Six card shapes, not one per industry.** A pack picks a shape from a closed
+vocabulary — `pass`, `status`, `plan`, `range`, `steps`, `detail` — so the two
+packs share every renderer. A boarding pass and a booked service visit are the
+same object. If a pack could name its own layout, the interface would need a
+component per pack and "adding an industry is adding a directory" would quietly
+stop being true.
+
+**The card spec is a projection.** Chained tools routinely return more than the
+card they are filling can show, and the surplus is dropped before it reaches
+the client rather than being silently ignored there. What was dropped is
+reported as a trace event, because a field turning up in that list usually
+means a card should declare it or a chain is wired to the wrong tool.
+
 ## Tests
 
 ```bash
@@ -140,16 +176,17 @@ the numbers mean and which design decisions they drove.
 
 ```
 core/       the engine. scenario-agnostic.
-  scenario.py   pack schema and loader
+  scenario.py   pack schema, layout vocabulary, loader
   prompt.py     pack → system blocks + the forced tool
   streaming.py  incremental JSON decoding
-  engine.py     routing → validation → tools → card
+  engine.py     routing → validation → tools → projection → card
   memory.py     transcript sanitising
   ratelimit.py  per-IP window + deployment ceiling
   providers/    claude (live) and scripted (offline)
-scenarios/  the packs
+scenarios/  the packs. airport, frontdesk.
 app/        FastAPI + SSE
-tools/      the latency harness
+web/        Vite + React. six card shapes, generated types.
+tools/      bench.py (latency), gen_types.py (TypeScript)
 ```
 
 ## Note on the airline

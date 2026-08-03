@@ -7,13 +7,23 @@ code change -- which is also what makes `tools/bench.py` able to sweep them.
 
 from __future__ import annotations
 
+import pathlib
 from functools import lru_cache
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+# Resolved against this package, not the working directory. A relative ".env"
+# is found only when the process happens to be launched from the project root,
+# so it works locally and then quietly does not under a process manager that
+# sets its own cwd -- and the failure is silent: every setting falls back to
+# its default and the app serves the wrong scenario without complaining.
+ENV_FILE = pathlib.Path(__file__).resolve().parents[1] / ".env"
+
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
+    model_config = SettingsConfigDict(
+        env_file=ENV_FILE, env_file_encoding="utf-8", extra="ignore"
+    )
 
     # -- which pack to serve ------------------------------------------------
     scenario: str = "airport"

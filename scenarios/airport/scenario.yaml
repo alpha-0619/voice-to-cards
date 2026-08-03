@@ -107,25 +107,24 @@ tools:
 
 cards:
   hero_boarding:
-    layout: boarding_pass
+    layout: pass
     fields: [passenger, flight, route, departs, gate, seat, boarding_group, barcode]
     optional_fields: [cabin, sequence]
   hero_disruption:
-    layout: disruption
+    layout: status
     fields: [flight, route, status, scheduled, estimated, reason]
     optional_fields: [gate, boarding_time, previous_gate, voucher_code, voucher_value, voucher_note]
   hero_connection:
-    layout: connection
+    layout: plan
     fields: [inbound, onward, destination, minutes_to_connect, risk, onward_gate]
     optional_fields: [held_seat, backup_flight, backup_departs, walk_minutes, steps]
   detail:
     layout: detail
     fields: [title, summary]
-    optional_fields: [belt, hall, ready_at, lounge, location, hours, eligibility]
+    optional_fields: [belt, hall, ready_at, lounge, location, hours, eligibility, walk_minutes, steps]
   directions:
-    layout: directions
+    layout: steps
     fields: [destination, walk_minutes, steps]
-    optional_fields: [level, landmark]
 
 demos:
   # Written the way stressed passengers actually speak. A demo on clean

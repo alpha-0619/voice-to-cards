@@ -6,3 +6,5 @@ __pycache__/
 bench_results/
 node_modules/
 web/dist/
+web/node_modules/
+web/dist/

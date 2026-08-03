@@ -120,15 +120,15 @@ tools:
 
 cards:
   hero_appointment:
-    layout: appointment
+    layout: pass
     fields: [customer, address, service, window, job_ref]
     optional_fields: [technician, plan, arrival_note, coverage, expires]
   hero_dispatch:
-    layout: dispatch
+    layout: status
     fields: [job_ref, status, issue, priority, technician]
     optional_fields: [eta_minutes, vehicle, window, arrival_note]
   hero_quote:
-    layout: quote
+    layout: range
     fields: [service, range_low, range_high, currency]
     optional_fields: [includes, diagnostic_fee, note]
   detail:
