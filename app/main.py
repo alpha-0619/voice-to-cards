@@ -17,12 +17,14 @@ from __future__ import annotations
 
 import json
 import logging
+import pathlib
 from contextlib import asynccontextmanager
 from typing import Any, AsyncIterator
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
+from fastapi.responses import FileResponse, StreamingResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 from core.config import get_settings
@@ -47,6 +49,10 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name
 log = logging.getLogger("v2c")
 
 settings = get_settings()
+
+# Where the built interface lands. Vercel serves this from the CDN; locally the
+# routes at the bottom of this file serve it, so both shapes are the same.
+PUBLIC_DIR = pathlib.Path(__file__).resolve().parents[1] / "public"
 
 EVENT_NAMES = {
     Trace: "trace",
@@ -249,6 +255,25 @@ async def converse(req: ConverseRequest, request: Request):
     return _sse_response(_stream(engine, req.utterance, history))
 
 
+@app.get("/")
+async def index():
+    """Serve the built interface, when there is one.
+
+    On Vercel this route is usually shadowed: `public/**` is served from the
+    CDN, so the request never reaches the function. It matters locally, where
+    it means `uvicorn app.main:app` alone serves the whole thing on one port
+    and reproduces the deployed shape -- worth having, because "works under the
+    dev server, breaks in production" is the failure this avoids.
+    """
+    index_file = PUBLIC_DIR / "index.html"
+    if not index_file.is_file():
+        raise HTTPException(
+            status_code=404,
+            detail="No built interface. Run `npm --prefix web run build`, or use the dev server.",
+        )
+    return FileResponse(index_file)
+
+
 @app.post("/api/replay/{demo_id}")
 async def replay(demo_id: str):
     """Replay a canned utterance with no model call and no metering.
@@ -264,3 +289,9 @@ async def replay(demo_id: str):
     engine: Engine = app.state.replay_engine
     engine.provider.queue(demo.decision)
     return _sse_response(_stream(engine, demo.utterance, None))
+
+
+# Mounted last so it cannot shadow an API route. Only present when a build
+# exists, so a source checkout without one still starts and still serves the API.
+if (PUBLIC_DIR / "assets").is_dir():
+    app.mount("/assets", StaticFiles(directory=PUBLIC_DIR / "assets"), name="assets")

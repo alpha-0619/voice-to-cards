@@ -15,6 +15,11 @@ export default defineConfig({
     },
   },
   build: {
+    // Built into the repo's public/ directory, which Vercel serves from the
+    // CDN. The same directory is served by FastAPI when running locally, so
+    // `uvicorn app.main:app` alone reproduces the production shape on one port.
+    outDir: "../public",
+    emptyOutDir: true,
     // No vendor chunking games. The point of building the components by hand
     // instead of pulling in a component library is that the bundle stays small
     // enough not to need them.

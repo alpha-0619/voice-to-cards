@@ -91,6 +91,22 @@ Set a key only where free-form input is actually wanted — a local run, or a
 deployment behind auth. The rate limiter exists for the middle case, but the
 strongest control is simply not putting a key somewhere the public can reach.
 
+The repository is configured for Vercel: `vercel.json` builds the interface into
+`public/`, which is served from the CDN, and `app/main.py` becomes a single
+streaming function. Import the repo and deploy — there is nothing to configure,
+because the thing you would normally configure is the key, and there isn't one.
+
+To reproduce the deployed shape locally, build once and run the API alone:
+
+```bash
+npm --prefix web run build     # → public/
+uvicorn app.main:app --port 8000
+```
+
+That serves the interface and the API from one process on one port, with no dev
+server and no proxy — which is the point of doing it, since "works under the dev
+server, breaks in production" is the failure it rules out.
+
 ## A scenario pack
 
 ```
