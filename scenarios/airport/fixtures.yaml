@@ -1,0 +1,127 @@
+# Canned tool results. In a live deployment these are what the real integration
+# returns; here they stand in for it so the engine can be exercised, demoed and
+# tested end to end without any external dependency.
+#
+# `base` is the shared payload. `localized` overlays only the fields a human
+# actually reads, per language -- codes and numbers stay in `base` so routing
+# logic never has to care which language it is running in. Adding a language
+# means adding an overlay here and a file under strings/, and nothing else.
+
+get_booking:
+  base:
+    passenger: A. NAKAMURA
+    flight: SX412
+    route: KTL - PDX
+    departs: "18:40"
+    gate: C14
+    seat: 22A
+    boarding_group: "3"
+    cabin: ECONOMY
+    sequence: "047"
+    barcode: SX7K2Q4-SX412-22A
+
+check_in:
+  base:
+    passenger: A. NAKAMURA
+    flight: SX412
+    route: KTL - PDX
+    departs: "18:40"
+    gate: C14
+    seat: 22A
+    boarding_group: "3"
+    cabin: ECONOMY
+    sequence: "047"
+    barcode: SX7K2Q4-SX412-22A
+
+get_flight_status:
+  base:
+    flight: SX412
+    route: KTL - PDX
+    status: DELAYED
+    scheduled: "18:40"
+    estimated: "21:05"
+  localized:
+    en:
+      reason: Late arrival of the inbound aircraft. Crew are already at the gate.
+    es:
+      reason: Retraso en la llegada del avión de entrada. La tripulación ya está en la puerta.
+
+get_gate_info:
+  base:
+    gate: C14
+    previous_gate: B7
+    boarding_time: "20:25"
+
+issue_meal_voucher:
+  base:
+    voucher_code: SX-MEAL-4471
+    voucher_value: "18.00"
+  localized:
+    en:
+      voucher_note: Valid at any restaurant past security until midnight. A warm meal on us.
+    es:
+      voucher_note: Válido en cualquier restaurante después del control hasta medianoche. La cena corre por nuestra cuenta.
+
+get_connection_risk:
+  base:
+    inbound: SX412
+    onward: SX88
+    destination: SIN
+    minutes_to_connect: 47
+    risk: TIGHT
+    onward_gate: D22
+
+protect_connection:
+  base:
+    held_seat: 14C
+    backup_flight: SX90
+    backup_departs: "23:15"
+
+get_bag_belt:
+  base:
+    belt: "6"
+    ready_at: "19:10"
+  localized:
+    en:
+      title: Baggage reclaim
+      summary: Your checked bags arrive on belt 6, in the arrivals hall on level 1.
+      hall: Arrivals, level 1
+    es:
+      title: Recogida de equipaje
+      summary: Sus maletas facturadas llegan a la cinta 6, en la sala de llegadas de la planta 1.
+      hall: Llegadas, planta 1
+
+get_directions:
+  base:
+    walk_minutes: 7
+    level: "2"
+  localized:
+    en:
+      destination: Gate D22
+      landmark: past the glass atrium
+      steps:
+        - Head right out of the arrivals hall and follow signs for D gates.
+        - Take the escalator up one level at the glass atrium.
+        - Continue past the pharmacy; D22 is the fourth gate on the left.
+    es:
+      destination: Puerta D22
+      landmark: pasando el atrio de cristal
+      steps:
+        - Salga a la derecha de la sala de llegadas y siga los carteles hacia las puertas D.
+        - Suba una planta por la escalera mecánica junto al atrio de cristal.
+        - Siga pasando la farmacia; la D22 es la cuarta puerta a la izquierda.
+
+check_lounge_access:
+  base:
+    lounge: Solstice Skyline Lounge
+    location: Level 3, above gate C10
+    hours: "05:00 - 23:30"
+  localized:
+    en:
+      title: Lounge access
+      summary: You are eligible today. Showers, hot food and quiet rooms are on level 3.
+      eligibility: Included with your fare
+    es:
+      title: Acceso a la sala VIP
+      summary: Hoy tiene acceso. Duchas, comida caliente y salas de descanso en la planta 3.
+      eligibility: Incluido con su tarifa
