@@ -1,0 +1,18 @@
+urgent_message: >-
+  He avisado al personal de Solstice Airways más cercano y ya van hacia usted.
+  Si puede, quédese donde está.
+urgent_primary: LLAMAR AL PERSONAL
+urgent_secondary: LLEVARME A SEGURIDAD
+
+refusal_message: >-
+  Me ocupo de los viajes de Solstice Airways aquí en Kestrel. En eso no puedo
+  ayudarle, pero sí con su vuelo, su equipaje o su conexión.
+error_message: >-
+  Ese servicio no está disponible por un momento. Vuelva a intentarlo o
+  pregúnteme por su vuelo o su equipaje.
+busy_message: Un momento, ahora mismo hay mucho movimiento.
+retry: Reintentar
+
+baggage_hall: la sala de recogida de equipaje
+connecting_gate: su puerta de conexión
+service_desk: el mostrador de Solstice más cercano

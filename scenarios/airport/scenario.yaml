@@ -1,0 +1,233 @@
+id: airport
+name: Solstice Airways terminal assistant
+
+# Solstice Airways and Kestrel International are invented. Every identifier,
+# gate, belt and lounge below is fictional, and the reference notes cite the
+# reserved .example domain rather than pretending to quote a real carrier.
+
+persona: |
+  You are the terminal assistant for Solstice Airways at Kestrel International
+  Airport. You speak the way a good gate agent does under pressure: calm, warm,
+  specific, never chirpy. Passengers reach you mid-journey, often stressed and
+  often not in their first language.
+
+disambiguation: |
+  Routing notes:
+  - A passenger calmly asking WHERE their bag, luggage, suitcase or belongings
+    are means checked-bag collection -> get_bag_belt. It is not urgent.
+    Reserve flag_urgent for "lost", "stolen", "missing", "can't find", or
+    visible panic.
+  - "Where is X" for a place (gate, lounge, exit, taxi rank) -> get_directions.
+  - A tight or missed onward flight -> get_connection_risk, not
+    get_flight_status.
+  - When two actions both fit, prefer the one that answers the passenger's
+    actual next step.
+
+languages: [en, es]
+default_language: en
+
+identifiers:
+  booking:
+    field: booking_ref
+    pattern: "SX[A-Z0-9]{5}"
+    description: 'booking reference = "SX" followed by 5 letters or digits, e.g. SX7K2Q4'
+  flight:
+    field: flight_number
+    pattern: "SX[0-9]{1,4}"
+    description: 'flight number = "SX" followed by 1-4 digits, e.g. SX412'
+  member:
+    field: member_id
+    pattern: "SX[0-9]{6,8}"
+    description: 'loyalty number = "SX" followed by 6-8 digits, e.g. SX774120'
+
+tools:
+  - name: get_booking
+    description: Look up a reservation and return the passenger, flight and seat.
+    card: hero_boarding
+    params:
+      booking_ref: {type: string, description: The passenger's booking reference, required: true}
+
+  - name: check_in
+    description: Check a passenger in and issue a digital boarding pass.
+    card: hero_boarding
+    params:
+      booking_ref: {type: string, description: The passenger's booking reference, required: true}
+
+  - name: get_flight_status
+    description: Return live status for a flight (on time, delayed, cancelled) and the reason.
+    card: hero_disruption
+    params:
+      flight_number: {type: string, description: Flight number if the passenger gave one}
+      booking_ref: {type: string, description: Booking reference if they gave that instead}
+
+  - name: get_gate_info
+    description: Return the current gate and boarding time for a flight.
+    card: hero_disruption
+    params:
+      flight_number: {type: string, description: Flight number, required: true}
+
+  - name: issue_meal_voucher
+    description: Issue a terminal meal voucher to a passenger whose flight is disrupted.
+    card: hero_disruption
+    params:
+      booking_ref: {type: string, description: The passenger's booking reference, required: true}
+
+  - name: get_connection_risk
+    description: >-
+      For a transferring passenger, return the inbound and onward flights, minutes left
+      to connect, the risk level and the onward gate.
+    card: hero_connection
+    params:
+      booking_ref: {type: string, description: The passenger's booking reference, required: true}
+
+  - name: protect_connection
+    description: Hold the onward seat and reserve a backup flight for a passenger at risk of misconnecting.
+    card: hero_connection
+    params:
+      booking_ref: {type: string, description: The passenger's booking reference, required: true}
+
+  - name: get_bag_belt
+    description: Return the reclaim belt for an arriving flight's checked bags.
+    card: detail
+    params:
+      flight_number: {type: string, description: The arriving flight number, required: true}
+
+  - name: get_directions
+    description: Return walking directions to a place in the terminal.
+    card: directions
+    params:
+      destination: {type: string, description: Where the passenger wants to go, required: true}
+
+  - name: check_lounge_access
+    description: Check lounge eligibility and return the lounge's location and hours.
+    card: detail
+    params:
+      booking_ref: {type: string, description: Booking reference, if given}
+      member_id: {type: string, description: Loyalty number, if given}
+
+cards:
+  hero_boarding:
+    layout: boarding_pass
+    fields: [passenger, flight, route, departs, gate, seat, boarding_group, barcode]
+    optional_fields: [cabin, sequence]
+  hero_disruption:
+    layout: disruption
+    fields: [flight, route, status, scheduled, estimated, reason]
+    optional_fields: [gate, boarding_time, previous_gate, voucher_code, voucher_value, voucher_note]
+  hero_connection:
+    layout: connection
+    fields: [inbound, onward, destination, minutes_to_connect, risk, onward_gate]
+    optional_fields: [held_seat, backup_flight, backup_departs, walk_minutes, steps]
+  detail:
+    layout: detail
+    fields: [title, summary]
+    optional_fields: [belt, hall, ready_at, lounge, location, hours, eligibility]
+  directions:
+    layout: directions
+    fields: [destination, walk_minutes, steps]
+    optional_fields: [level, landmark]
+
+demos:
+  # Written the way stressed passengers actually speak. A demo on clean
+  # sentences proves the routing works on input it will never see.
+  - id: connection
+    label: I'll miss my connection
+    utterance: >-
+      aaah my plane just land, very very late, my next one to Singapore... I think
+      I miss my connection? gate also change? quick please, booking SX7K2Q4, I make it or no??
+    decision:
+      understood: You have landed late and your onward flight to Singapore is at risk. Checking now.
+      language: en
+      action: get_connection_risk
+      arguments: {booking_ref: SX7K2Q4}
+
+  - id: disruption
+    label: My flight is delayed
+    utterance: >-
+      my flight SX412 it is delay yes? how much long? and what I do now,
+      I am stuck here, booking SX7K2Q4, tell me please
+    decision:
+      understood: You want to know how long flight SX412 is delayed and what happens next.
+      language: en
+      action: get_flight_status
+      arguments: {flight_number: SX412, booking_ref: SX7K2Q4}
+
+  - id: checkin
+    label: Check me in
+    utterance: >-
+      hello please, I must check in my flight, booking SX7K2Q4, I want the
+      boarding pass in my phone, how I do this fast?
+    decision:
+      understood: You want to check in for your flight and get a boarding pass on your phone.
+      language: en
+      action: check_in
+      arguments: {booking_ref: SX7K2Q4}
+
+  - id: baggage
+    label: Where are my bags
+    utterance: I land already, where my baggage come out? which belt? flight SX412.
+    decision:
+      understood: You have landed and want to know which belt your checked bags arrive on.
+      language: en
+      action: get_bag_belt
+      arguments: {flight_number: SX412}
+
+  - id: policy
+    label: Can I take a power bank
+    utterance: excuse me, the battery thing for charging phone, I can take in the bag? or no?
+    decision:
+      understood: You are asking whether a power bank can travel in your baggage.
+      language: en
+      action: answer_policy
+      arguments: {}
+      reply: >-
+        Power banks have to travel in the cabin, never in a checked bag, and spare
+        batteries need their terminals taped or kept in the original packaging.
+      sources: ["https://www.solsticeair.example/help/cabin-baggage"]
+
+  - id: urgent
+    label: I lost my wallet
+    utterance: >-
+      Help, please, big problem! My money... I think stolen, yes, stolen! No, I
+      don't know where, I am losing my mind. Last time the shop I pay... then walk,
+      walk fast to the gate... now the bag is open, money gone, nothing! What I do?
+    decision:
+      understood: Your wallet is missing and you believe it was stolen. Getting help to you now.
+      language: en
+      action: flag_urgent
+      arguments: {}
+
+  - id: spanish
+    label: (es) Mi vuelo va con retraso
+    utterance: perdone, mi vuelo SX412 lleva retraso? cuanto falta? mi reserva es SX7K2Q4
+    decision:
+      understood: Quiere saber cuánto retraso lleva el vuelo SX412 y qué pasa ahora.
+      language: es
+      action: get_flight_status
+      arguments: {flight_number: SX412, booking_ref: SX7K2Q4}
+
+chains:
+  # A delayed flight is never just a status. The passenger's next two questions
+  # are always "which gate now" and "what do I do for the next three hours", so
+  # the card answers them before they are asked.
+  - when_tool: get_flight_status
+    when_result: {status: DELAYED}
+    then:
+      - tool: get_gate_info
+        args: {flight_number: "$args.flight_number | $result.flight"}
+      - tool: issue_meal_voucher
+        args: {booking_ref: "$args.booking_ref"}
+
+  # A tight connection is a rescue, not a lookup: hold the seat first, then say
+  # where to run.
+  - when_tool: get_connection_risk
+    then:
+      - tool: protect_connection
+        args: {booking_ref: "$args.booking_ref"}
+      - tool: get_directions
+        args: {destination: "$result.onward_gate | $strings.connecting_gate"}
+
+  - when_tool: get_bag_belt
+    then:
+      - tool: get_directions
+        args: {destination: "$strings.baggage_hall"}

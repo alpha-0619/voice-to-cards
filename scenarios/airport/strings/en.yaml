@@ -1,0 +1,22 @@
+# Text the engine writes itself: refusals, errors, buttons, and the place names
+# it passes to tools. Pre-translated, so adding a language costs nothing at
+# request time. `tests/test_scenarios.py` fails if any language is missing a key.
+
+urgent_message: >-
+  I have alerted the nearest Solstice Airways staff and they are on their way to you.
+  Stay where you are if you can.
+urgent_primary: CALL STAFF TO ME
+urgent_secondary: TAKE ME TO SECURITY
+
+refusal_message: >-
+  I look after Solstice Airways travel here at Kestrel. I can't help with that,
+  but I can with your flight, your bags, or your connection.
+error_message: >-
+  That service is briefly unavailable. Please try again, or ask me about your
+  flight or your bags.
+busy_message: One moment, things are busy right now.
+retry: Try again
+
+baggage_hall: the baggage reclaim hall
+connecting_gate: your connecting gate
+service_desk: the nearest Solstice service desk
