@@ -205,6 +205,12 @@ web/        Vite + React. six card shapes, generated types.
 tools/      bench.py (latency), gen_types.py (TypeScript)
 ```
 
+## Handing this over
+
+[NEXT_SESSION.md](NEXT_SESSION.md) is the working handoff: what is verified and
+how, what is still an assumption, the gotchas that cost time, and what to do
+next. It is written for whoever picks this up, including a future me.
+
 ## Note on the airline
 
 Solstice Airways and Kestrel International are invented, as are every
