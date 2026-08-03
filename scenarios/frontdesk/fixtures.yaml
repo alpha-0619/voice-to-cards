@@ -1,0 +1,132 @@
+find_account:
+  base:
+    customer: M. ALVAREZ
+    address: 148 Ridgeway Drive
+    equipment: Gas furnace (2016), split AC (2019)
+    plan: Comfort Plan, active
+  localized:
+    en:
+      title: Account found
+      summary: Two units on file at 148 Ridgeway Drive, both on the Comfort Plan.
+    es:
+      title: Cuenta encontrada
+      summary: Dos equipos registrados en 148 Ridgeway Drive, ambos con el Plan Comfort.
+
+get_job_status:
+  base:
+    job_ref: RH4T8K2
+    status: EN_ROUTE
+    priority: P2
+    technician: Dane R.
+    vehicle: Van 12
+    window: "09:00 - 12:00"
+  localized:
+    en:
+      issue: Air conditioning making a rattling noise
+    es:
+      issue: El aire acondicionado hace un ruido de traqueteo
+
+get_technician_eta:
+  base:
+    eta_minutes: 18
+  localized:
+    en:
+      arrival_note: Dane is finishing a call two streets away and will ring the bell on arrival.
+    es:
+      arrival_note: Dane está terminando un aviso a dos calles y llamará al timbre al llegar.
+
+dispatch_emergency:
+  base:
+    job_ref: RH9P1X6
+    status: DISPATCHED
+    priority: P1
+    technician: Priya S.
+    vehicle: Van 4
+    window: within 2 hours
+  localized:
+    en:
+      issue: No heat, vulnerable resident in the home
+    es:
+      issue: Sin calefacción, persona vulnerable en la vivienda
+
+book_service_visit:
+  base:
+    customer: M. ALVAREZ
+    address: 148 Ridgeway Drive
+    window: Thursday 13:00 - 16:00
+    job_ref: RH6M2D9
+    technician: Dane R.
+  localized:
+    en:
+      service: Air conditioning noise, diagnostic visit
+      arrival_note: You will get a text when the technician is 30 minutes away.
+    es:
+      service: Ruido del aire acondicionado, visita de diagnóstico
+      arrival_note: Recibirá un mensaje cuando el técnico esté a 30 minutos.
+
+reschedule_visit:
+  base:
+    customer: M. ALVAREZ
+    address: 148 Ridgeway Drive
+    window: Monday 08:00 - 11:00
+    job_ref: RH6M2D9
+    technician: Dane R.
+  localized:
+    en:
+      service: Rescheduled diagnostic visit
+      arrival_note: Your original slot has been released.
+    es:
+      service: Visita de diagnóstico reprogramada
+      arrival_note: Su cita anterior ha quedado liberada.
+
+get_quote_range:
+  base:
+    range_low: "4200"
+    range_high: "7800"
+    currency: USD
+    diagnostic_fee: "89"
+  localized:
+    en:
+      service: Furnace replacement
+      includes: Removal of the old unit, the new unit, labour and permits.
+      note: The band is wide because sizing and ductwork decide it. The technician confirms on site before any work starts.
+    es:
+      service: Sustitución de la caldera
+      includes: Retirada del equipo antiguo, equipo nuevo, mano de obra y permisos.
+      note: La horquilla es amplia porque depende del dimensionado y los conductos. El técnico lo confirma in situ antes de empezar.
+
+check_warranty:
+  base:
+    coverage: Parts and labour
+    expires: "2027-04-30"
+  localized:
+    en:
+      title: Warranty
+      summary: Parts and labour are covered until 30 April 2027, so this visit costs you nothing.
+    es:
+      title: Garantía
+      summary: Piezas y mano de obra están cubiertas hasta el 30 de abril de 2027, así que esta visita no le cuesta nada.
+
+get_service_history:
+  base:
+    last_visit: "2026-03-11"
+  localized:
+    en:
+      title: Recent visits
+      summary: Three visits in the past two years. The most recent was a spring service on 11 March 2026.
+    es:
+      title: Visitas recientes
+      summary: Tres visitas en los últimos dos años. La más reciente fue el mantenimiento de primavera el 11 de marzo de 2026.
+
+get_hours_and_area:
+  base:
+    hours: "07:00 - 19:00, Monday to Saturday"
+  localized:
+    en:
+      title: Hours and service area
+      summary: Open 07:00 to 19:00 Monday to Saturday, with emergency cover overnight and on Sundays.
+      area: Within 40 minutes of the Ridgeway depot.
+    es:
+      title: Horario y zona de servicio
+      summary: Abierto de 07:00 a 19:00 de lunes a sábado, con guardia de emergencia por la noche y los domingos.
+      area: Hasta 40 minutos del almacén de Ridgeway.
