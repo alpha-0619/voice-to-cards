@@ -1,0 +1,14 @@
+# Runtime dependencies for the deployed function.
+#
+# Deliberately not pinned to exact versions: this is a demonstration that
+# should still install in a year, and the surface it uses from each of these is
+# small and stable. A production service would pin.
+#
+# `anthropic` is listed even though a keyless deployment never constructs the
+# client -- the import is lazy, and leaving it out would mean a deployment that
+# works until someone adds a key and then fails on the first free-form request.
+anthropic>=0.70
+fastapi>=0.115
+pydantic>=2.9
+pydantic-settings>=2.6
+pyyaml>=6.0
