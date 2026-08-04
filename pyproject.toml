@@ -22,6 +22,15 @@ dev = [
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
+# The repository root, so `tools` is importable. It is deliberately not part of
+# the installed package -- it is a bench script and a code generator, not
+# something a deployment should carry -- but the tests that check the wire
+# names against the generator have to import it. Without this, `pytest` finds
+# `core` and `app` from the editable install and nothing else, while
+# `python -m pytest` happens to work because that form puts the working
+# directory on the path. Two commands, two results, and CI runs the one that
+# fails; naming the path here makes both forms agree.
+pythonpath = ["."]
 
 [tool.setuptools.packages.find]
 include = ["core*", "app*"]
