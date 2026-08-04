@@ -38,19 +38,9 @@ Three things it is meant to do for the user:
 
 ---
 
-## Do this next, in this order
+## Do this next
 
-### 1. Re-enable CI (30 seconds, needs the user's browser)
-
-`docs/github-actions-ci.yml` is the workflow, parked at a path GitHub does not
-gate. Copy it to `.github/workflows/ci.yml` **through GitHub's web editor** —
-that works with no extra scope, because the web session is not the OAuth app.
-
-Why it was parked: GitHub rejects any push creating a file under
-`.github/workflows/` unless the token has the `workflow` scope. See the gh note
-under Gotchas.
-
-### 2. Measure the five assumptions (needs a key; the user has declined so far)
+### Measure the five assumptions (needs a key; the user has declined so far)
 
 `tools/bench.py` is written and unused. Everything below is currently an
 argument, not a result:
@@ -140,7 +130,25 @@ on Vercel. There is no gap for anything to stream into. The interface says so
 itself -- it prints "first readable text at 261 ms · full answer at 261 ms
 (canned, no model call)". So do not treat "the demo did not visibly stream" as a
 deployment fault, and do not use the canned path to claim streaming works. That
-still needs a key, and it is assumption 2 in the table above. `gh auth status` from a Git Bash shell
+still needs a key, and it is assumption 2 in the table above.
+
+**`pytest` and `python -m pytest` do not agree here, and CI runs the one that
+fails.** `python -m pytest` puts the working directory on `sys.path`; the bare
+`pytest` command does not. `tools` is deliberately not part of the installed
+package, so under a clean `pip install -e ".[dev]"` the bare command could not
+import it and `tests/test_generated_types.py` failed on both Python versions
+while `python -m pytest` reported 106 passed. `pythonpath = ["."]` in
+`pyproject.toml` now makes both forms agree. The general lesson is the reason
+this is written down: a suite verified with a different command than CI runs has
+not been verified.
+
+**The `workflow` scope gates the REST API too, and lies about it.** Creating
+`.github/workflows/ci.yml` through `PUT /repos/{owner}/{repo}/contents/...`
+returns **404**, not 403, while a `GET` on `docs/` in the same branch with the
+same token succeeds. So the missing scope reads as "file not found". The web
+editor is the only route that works without re-authenticating.
+
+**gh scopes.** `gh auth status` from a Git Bash shell
 reports logged in as `alpha-0619` from the Windows keyring, with scopes
 `gist, read:org, repo`. The same `gh auth refresh -s workflow` run from the
 user's cmd session reports "not logged in to any hosts". `hosts.yml` holds no
