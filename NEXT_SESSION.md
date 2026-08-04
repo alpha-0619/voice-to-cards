@@ -2,12 +2,16 @@
 
 **Read this first. It is the current state of truth for this project.**
 
-Status: code complete and pushed. One deploy step is waiting on the user. Five
-things the design rests on have never been measured against a live model, and
-the repository says so everywhere rather than implying otherwise.
+Status: deployed and verified. One 30-second step is still waiting on the user
+(CI). Five things the design rests on have never been measured against a live
+model, and the repository says so everywhere rather than implying otherwise.
 
-Repo: <https://github.com/alpha-0619/voice-to-cards> (public, `main`, 58 files)
+Live: <https://voice-to-cards.vercel.app> (public, no login, no key on the box)
+Repo: <https://github.com/alpha-0619/voice-to-cards> (public, `main`)
 Local: `C:\Users\User\projects\voice-to-cards`
+
+The other two Vercel hostnames for this project sit behind the team's SSO and
+are useless as a portfolio link. Share the one above.
 
 ---
 
@@ -36,32 +40,7 @@ Three things it is meant to do for the user:
 
 ## Do this next, in this order
 
-### 1. Vercel deploy (needs the user; nothing else is blocked by it)
-
-The repository is configured. On vercel.com: Add New → Project → import
-`alpha-0619/voice-to-cards` → **leave Environment Variables completely empty** →
-Deploy.
-
-The empty environment is the point, not an oversight. With no
-`ANTHROPIC_API_KEY`, `/api/converse` returns 503 and the seven canned demos run
-the real engine end to end. A public link with no key on the box cannot be run
-up a bill on, which is what the user asked for and a stronger guarantee than
-any rate limit.
-
-**Watch the first build log for one specific thing.** `vercel.json` sets
-`buildCommand` to `npm --prefix web ci && npm --prefix web run build`. Vercel's
-docs confirm a build command runs after dependency installation on the Python
-runtime, but do not state that node is present in that image. If the build
-fails at the `npm` step, the fallback is to commit the built `public/` directory
-(remove `public/` from `.gitignore`, run the build, commit) and delete
-`buildCommand` from `vercel.json`. Then Vercel only serves static files and runs
-the function, and the question disappears.
-
-After it deploys, click through all seven demos and confirm text streams in
-rather than appearing at once. Fluid compute is documented to support streaming;
-this is the first time it will have been observed.
-
-### 2. Re-enable CI (30 seconds, needs the user's browser)
+### 1. Re-enable CI (30 seconds, needs the user's browser)
 
 `docs/github-actions-ci.yml` is the workflow, parked at a path GitHub does not
 gate. Copy it to `.github/workflows/ci.yml` **through GitHub's web editor** —
@@ -71,7 +50,7 @@ Why it was parked: GitHub rejects any push creating a file under
 `.github/workflows/` unless the token has the `workflow` scope. See the gh note
 under Gotchas.
 
-### 3. Measure the five assumptions (needs a key; the user has declined so far)
+### 2. Measure the five assumptions (needs a key; the user has declined so far)
 
 `tools/bench.py` is written and unused. Everything below is currently an
 argument, not a result:
@@ -111,6 +90,7 @@ not let the phrasing drift into implying one. `docs/LATENCY.md` opens with a
 | Both packs render through one interface | Driven in a real browser: every demo, every layout, both languages, zero frontend changes between packs |
 | The deployed shape works | Built into `public/`, served by `uvicorn app.main:app` alone on one port, no dev server and no proxy, all seven demos verified through it |
 | No secrets or client references in the repo | `git grep` for client names, the original project, and secret-shaped strings: all clean before the push |
+| The public deployment works | On <https://voice-to-cards.vercel.app>: `/health` reports `has_key: false`; all seven demos return 200 with a complete event stream; six end in a `card`, `policy` ends in a `reply` because that is how the scenario defines it; `index.html` and both assets are served by the CDN; the interface renders both languages |
 
 ---
 
@@ -141,7 +121,26 @@ Each of these is reusable, and each was found rather than designed:
 
 ## Gotchas that cost time
 
-**gh auth and the `workflow` scope.** `gh auth status` from a Git Bash shell
+**Vercel's FastAPI preset ignores what the build command writes.** It collects
+static assets from the source tree. The first deployment ran `buildCommand`
+perfectly -- the log shows all three files written into `public/` -- and served
+none of them: the Resources tab said **0 static assets**, and every request fell
+through to the function, which answered its own 404. Setting `outputDirectory`
+to `public` and redeploying without cache changed nothing, still 0. Committing
+`public/` gives 3. That is why `public/` is in the repository and why
+`buildCommand` is gone; changing anything under `web/` now needs a rebuild and a
+commit. Verified with every project-settings override cleared, so a fresh import
+of this repo behaves the same way.
+
+**The canned demos cannot demonstrate streaming, and never could.**
+`ScriptedProvider` has no pacing: it emits the whole payload in a tight loop, in
+about a millisecond. Measured client-side, the full 4,896-byte body of a replay
+arrives with a **0 ms span** between the first read and the last, locally *and*
+on Vercel. There is no gap for anything to stream into. The interface says so
+itself -- it prints "first readable text at 261 ms · full answer at 261 ms
+(canned, no model call)". So do not treat "the demo did not visibly stream" as a
+deployment fault, and do not use the canned path to claim streaming works. That
+still needs a key, and it is assumption 2 in the table above. `gh auth status` from a Git Bash shell
 reports logged in as `alpha-0619` from the Windows keyring, with scopes
 `gist, read:org, repo`. The same `gh auth refresh -s workflow` run from the
 user's cmd session reports "not logged in to any hosts". `hosts.yml` holds no
@@ -180,7 +179,7 @@ pytest -q                                  # 106 tests, no key needed
 python tools/gen_types.py                  # regenerate web/src/types.gen.ts
 python tools/gen_types.py --check          # what CI would assert
 
-npm --prefix web run build                 # → public/
+npm --prefix web run build                 # → public/, then commit it
 uvicorn app.main:app --port 8010           # serves the built app and the API
 ```
 
@@ -218,6 +217,8 @@ tools/      bench.py (unused, needs a key), gen_types.py
   Ridgeline Heating & Air. Reference notes cite the reserved `.example` domain.
   Nothing here quotes a real company.
 - **Not copied from the original.** Ideas yes, code no. Keep it that way.
+- **`public/` is committed.** Not a convenience; the platform gives no choice.
+  See the first gotcha. Do not "clean this up" by restoring `buildCommand`.
 - **Six card shapes, closed vocabulary.** A pack picks one. Adding a seventh is
   deliberate and touches the renderer; that friction is the point.
 - **Latency stays unquoted until measured.**
