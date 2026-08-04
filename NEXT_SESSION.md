@@ -17,12 +17,6 @@ are useless as a portfolio link. Share the one above.
 
 ## What this is, and why it exists
 
-A rewrite of a delivered client project, from scratch, as an asset the user
-owns. The original cannot be published: Upwork's default terms put the work
-product with the client on full payment, and its branding is threaded through
-42 files. So none of it was copied. The architecture ideas came across; every
-line is new.
-
 One spoken sentence in, one structured card out, streamed. The engine is
 scenario-agnostic: everything domain-specific lives in a directory of YAML and
 Markdown, and adding an industry adds a directory.
