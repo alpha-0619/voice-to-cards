@@ -91,10 +91,24 @@ Set a key only where free-form input is actually wanted — a local run, or a
 deployment behind auth. The rate limiter exists for the middle case, but the
 strongest control is simply not putting a key somewhere the public can reach.
 
-The repository is configured for Vercel: `vercel.json` builds the interface into
-`public/`, which is served from the CDN, and `app/main.py` becomes a single
-streaming function. Import the repo and deploy — there is nothing to configure,
-because the thing you would normally configure is the key, and there isn't one.
+The repository is configured for Vercel: `public/` is served from the CDN and
+`app/main.py` becomes a single streaming function. Import the repo and deploy —
+there is nothing to configure, because the thing you would normally configure is
+the key, and there isn't one.
+
+**`public/` is committed on purpose.** Vercel's FastAPI preset collects static
+assets from the source tree, not from whatever a build command writes afterwards:
+a deployment that ran the build correctly still served nothing from it and sent
+every request to the function instead. So the built interface has to be in the
+repository for the CDN to see it. The cost is that changing anything under `web/`
+takes a rebuild and a commit before it shows up:
+
+```bash
+npm --prefix web run build && git add public && git commit
+```
+
+The output is content-hashed and reproducible, so a rebuild that changes nothing
+produces no diff.
 
 To reproduce the deployed shape locally, build once and run the API alone:
 
