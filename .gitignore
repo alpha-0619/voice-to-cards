@@ -8,4 +8,8 @@ node_modules/
 web/dist/
 web/node_modules/
 web/*.tsbuildinfo
-public/
+
+# public/ is deliberately committed. Vercel's FastAPI preset collects static
+# assets from the source tree, not from whatever the build command writes: a
+# deployment that built public/ correctly still served nothing from it, and
+# every request fell through to the function. See the commit that added it.
