@@ -185,7 +185,7 @@ async def test_chain_does_not_overwrite_the_primary_answer(scenario):
 
 
 @pytest.mark.parametrize(
-    "bogus", ["<UNKNOWN>", "N/A", "none", "  ", "TK45BX2", "SX", "7K2Q4", "SX7K2Q4EXTRA"]
+    "bogus", ["<UNKNOWN>", "N/A", "none", "  ", "ZZ45BX2", "SX", "7K2Q4", "SX7K2Q4EXTRA"]
 )
 async def test_bad_identifiers_never_reach_a_tool(scenario, bogus):
     """Placeholders and wrong-shaped references are dropped, not forwarded."""
