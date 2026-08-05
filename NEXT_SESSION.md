@@ -2,9 +2,10 @@
 
 **Read this first. It is the current state of truth for this project.**
 
-Status: deployed and verified. One 30-second step is still waiting on the user
-(CI). Five things the design rests on have never been measured against a live
-model, and the repository says so everywhere rather than implying otherwise.
+Status: deployed, tested in CI, and audited. Nothing is waiting on anyone except
+one decision. Five things the design rests on have never been measured against a
+live model, and the repository says so everywhere rather than implying
+otherwise.
 
 Live: <https://voice-to-cards.vercel.app> (public, no login, no key on the box)
 Repo: <https://github.com/alpha-0619/voice-to-cards> (public, `main`)
@@ -73,7 +74,8 @@ not let the phrasing drift into implying one. `docs/LATENCY.md` opens with a
 | Adding an industry does not touch the engine | `git diff --stat 10a8cda~1 10a8cda -- core/ app/ tests/` is empty. That commit adds a whole second industry |
 | Both packs render through one interface | Driven in a real browser: every demo, every layout, both languages, zero frontend changes between packs |
 | The deployed shape works | Built into `public/`, served by `uvicorn app.main:app` alone on one port, no dev server and no proxy, all seven demos verified through it |
-| No secrets or client references in the repo | `git grep` for client names, the original project, and secret-shaped strings: all clean before the push |
+| The suite runs on a clean machine, not just this one | GitHub Actions, `.github/workflows/ci.yml`, Python 3.11 and 3.13, no API key. Green on `main`. Note that it runs `pytest`, not `python -m pytest`; the two disagree here and `pythonpath = ["."]` in `pyproject.toml` is what makes them agree |
+| Nothing identifying survives in the repo | Two passes. The first searched names, brands, the carrier code and the real gate, belt and lounge identifiers, across the tracked tree, the built output, every commit message and every blob in history. The second caught what the first structurally could not: the `urgent` demo's wording had been carried over near-verbatim from the earlier project and is now rewritten. An audit finds what it was designed to find |
 | The public deployment works | On <https://voice-to-cards.vercel.app>: `/health` reports `has_key: false`; all seven demos return 200 with a complete event stream; six end in a `card`, `policy` ends in a `reply` because that is how the scenario defines it; `index.html` and both assets are served by the CDN; the interface renders both languages |
 
 ---
