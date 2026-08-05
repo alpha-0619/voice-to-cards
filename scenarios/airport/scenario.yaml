@@ -187,9 +187,9 @@ demos:
   - id: urgent
     label: I lost my wallet
     utterance: >-
-      Help, please, big problem! My money... I think stolen, yes, stolen! No, I
-      don't know where, I am losing my mind. Last time the shop I pay... then walk,
-      walk fast to the gate... now the bag is open, money gone, nothing! What I do?
+      sorry, sorry, please. my wallet, is not in my bag. someone take it I think?
+      I have it when I buy the water, after that I walk to the gate, now nothing,
+      no cards, no money. my flight is boarding soon, what happen now, what I must do?
     decision:
       understood: Your wallet is missing and you believe it was stolen. Getting help to you now.
       language: en
